@@ -645,4 +645,47 @@ std::complex<double> WaveletAnalyzer::daubechiesWavelet(double t, double scale)
     return std::complex<double>(value, 0.0);
 }
 
+void WaveletAnalyzer::resetView()
+{
+    
+    if (!m_signalData.channels.empty()) {
+        int maxSamples = m_signalData.channels[0].size();
+        m_startSlider->setValue(0);
+        m_endSlider->setValue(maxSamples);
+        setTimeRange(); 
+    }
+    
+    
+    m_cwtCoefficients.clear();
+    m_scales.clear();
+    
+    
+    m_scalogramPlot->setCWTData({}, {}, {});
+    
+    
+    m_infoTextEdit->clear();
+    m_infoTextEdit->setPlaceholderText("Analysis information will appear here after performing CWT...");
+    
+    
+    m_progressBar->setValue(0);
+    
+    
+    m_statusLabel->setText("Ready - adjust parameters and click 'Perform CWT Analysis'");
+    
+    
+    m_waveletCombo->setCurrentIndex(0); 
+    m_minScaleSpinBox->setValue(1);
+    m_maxScaleSpinBox->setValue(64);
+    m_scaleStepsSpinBox->setValue(64);
+    
+    
+    m_analyzeButton->setEnabled(true);
+    m_analyzeButton->setText("Perform CWT Analysis");
+    
+    
+    updatePlots();
+    
+    qDebug() << "View reset to default state";
+}
+
 #include "WaveletAnalyzer.moc"
