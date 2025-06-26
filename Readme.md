@@ -17,7 +17,6 @@ Program do analizy sygnałów wielokanałowych z wykorzystaniem ciągłej transf
 
 - **Oscylogram** - wykres sygnału w dziedzinie czasu z możliwością zoomowania
 - **Skalogram** - reprezentacja 2D wyników CWT (skala vs czas) z mapą kolorów
-- **Interaktywne wykresy** z informacjami o parametrach analizy
 
 ## Instalacja
 
@@ -48,7 +47,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 
 # Uruchomienie
-./bin/CWTScalogramAnalyzer
+./build/bin/mdsv2
 ```
 
 ## Instrukcja użytkowania
@@ -74,7 +73,6 @@ make -j$(nproc)
 ### 4. Analiza CWT
 
 - Kliknij **"Perform CWT Analysis"**
-- Obserwuj postęp na pasku postępu
 - Wyniki pojawią się w skalogramie
 
 ### 5. Interpretacja wyników
