@@ -43,7 +43,7 @@
 #include <cmath>
 #include <stdexcept>
 
-/
+
 class SignalPlotWidget;
 class ScalogramWidget;
 
