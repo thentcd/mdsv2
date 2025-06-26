@@ -1,8 +1,10 @@
 #ifndef WAVELETANALYZER_H
 #define WAVELETANALYZER_H
 
-#include <QtWidgets>
+
 #include <QMainWindow>
+#include <QApplication>
+#include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -18,10 +20,28 @@
 #include <QTextEdit>
 #include <QSplitter>
 #include <QGroupBox>
-#include <QDesktopWidget>  
+#include <QMenuBar>
+#include <QStatusBar>
+#include <QPainter>
+#include <QMouseEvent>
+#include <QWheelEvent>
+#include <QPaintEvent>
+#include <QDesktopWidget>
+#include <QStyleFactory>
+#include <QDir>
+#include <QFileInfo>
+#include <QTextStream>
+#include <QStringList>
+#include <QTimer>
+#include <QDebug>
+
+
 #include <vector>
 #include <complex>
 #include <memory>
+#include <algorithm>
+#include <cmath>
+#include <stdexcept>
 
 
 class SignalPlotWidget;
@@ -33,7 +53,7 @@ class WaveletAnalyzer : public QMainWindow
 
 public:
     explicit WaveletAnalyzer(QWidget *parent = nullptr);
-    ~WaveletAnalyzer();
+    ~WaveletAnalyzer() override;
 
 private slots:
     void loadSignalFile();
@@ -44,6 +64,7 @@ private slots:
     void setTimeRange();
     void performCWT();
     void resetView();
+    void showAbout();
 
 private:
     void setupUI();
@@ -53,6 +74,7 @@ private:
     void setupVisualization();
     void updateSignalInfo();
     void updatePlots();
+    void centerWindow();
     
     
     struct SignalData {
@@ -61,6 +83,8 @@ private:
         double samplingRate;
         int selectedChannel;
         QString filename;
+        
+        SignalData() : samplingRate(1000.0), selectedChannel(0) {}
     };
     
     struct CWTParameters {
@@ -70,6 +94,9 @@ private:
         int scaleSteps;
         int startSample;
         int endSample;
+        
+        CWTParameters() : waveletType(0), minScale(1), maxScale(64), 
+                         scaleSteps(64), startSample(0), endSample(1000) {}
     };
     
     
@@ -124,6 +151,10 @@ private:
     std::complex<double> morletWavelet(double t, double scale);
     std::complex<double> mexicanHatWavelet(double t, double scale);
     std::complex<double> daubechiesWavelet(double t, double scale);
+    
+    
+    void handleException(const std::exception &e, const QString &context);
+    bool validateInputs();
 };
 
 
@@ -151,6 +182,7 @@ private:
     void drawSignal(QPainter &painter);
     void drawGrid(QPainter &painter);
     void drawAxes(QPainter &painter);
+    void drawErrorMessage(QPainter &painter, const QString &message);
 };
 
 class ScalogramWidget : public QWidget
@@ -171,10 +203,12 @@ private:
     std::vector<double> m_scales;
     std::vector<double> m_time;
     QImage m_scalogramImage;
+    QString m_errorMessage;
     
     void generateScalogramImage();
     QColor valueToColor(double magnitude, double maxMagnitude);
     void drawColorScale(QPainter &painter);
+    void drawErrorMessage(QPainter &painter, const QString &message);
 };
 
-#endif 
+#endif
