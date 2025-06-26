@@ -48,6 +48,7 @@ void WaveletAnalyzer::setupUI()
     
     setupSignalControls();
     setupWaveletControls();
+    setupVisualization();
     
     
     auto *controlsWidget = new QWidget;
