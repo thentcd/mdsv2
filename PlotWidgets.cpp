@@ -230,7 +230,7 @@ void ScalogramWidget::generateScalogramImage()
         maxMagnitude = 1.0;
     }
     
-    /
+    
     for (int scaleIdx = 0; scaleIdx < scaleSteps; ++scaleIdx) {
         for (int timeIdx = 0; timeIdx < timeSteps; ++timeIdx) {
             double magnitude = std::abs(m_coefficients[scaleIdx][timeIdx]);
