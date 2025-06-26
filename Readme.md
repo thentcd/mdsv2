@@ -1,6 +1,6 @@
-# CWT Scalogram Analyzer
+# Program Temat 6
 
-Program do analizy sygnałów wielokanałowych z wykorzystaniem ciągłej transformaty falkowej (CWT) z intuicyjnym interfejsem graficznym Qt6.
+Program do analizy sygnałów wielokanałowych z wykorzystaniem ciągłej transformaty falkowej (CWT) z intuicyjnym interfejsem graficznym Qt5.
 
 ## Funkcjonalności
 
@@ -25,8 +25,8 @@ Program do analizy sygnałów wielokanałowych z wykorzystaniem ciągłej transf
 
 ```bash
 # Sklonuj repozytorium
-git clone <repository-url>
-cd CWTScalogramAnalyzer
+git clone https://github.com/thentcd/mdsv2.git
+cd mdsv2
 
 # Nadaj uprawnienia wykonywania
 chmod +x build.sh
