@@ -5,7 +5,7 @@
 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EXECUTABLE="$SCRIPT_DIR/bin/CWTScalogramAnalyzer"
+EXECUTABLE="$SCRIPT_DIR/build/bin/mdsv2"
 
 
 if [ ! -f "$EXECUTABLE" ]; then
