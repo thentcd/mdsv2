@@ -428,19 +428,47 @@ void WaveletAnalyzer::performCWT()
         return;
     }
     
+    // Disable button during analysis
     m_analyzeButton->setEnabled(false);
-    m_progressBar->setValue(0);
-    m_statusLabel->setText("Performing CWT analysis...");
+    m_analyzeButton->setText("Analyzing...");
     
+    // Reset and show progress
+    m_progressBar->setValue(0);
+    m_progressBar->setVisible(true);
+    m_statusLabel->setText("Starting CWT analysis...");
+    m_infoTextEdit->clear();
+    
+    // Force UI update
     QApplication::processEvents();
     
     try {
-        
+        // Extract signal segment
         const auto &fullSignal = m_signalData.channels[m_signalData.selectedChannel];
+        
+        // Update parameters from UI
+        m_cwtParams.startSample = m_startSlider->value();
+        m_cwtParams.endSample = m_endSlider->value();
+        m_cwtParams.waveletType = m_waveletCombo->currentIndex();
+        m_cwtParams.minScale = m_minScaleSpinBox->value();
+        m_cwtParams.maxScale = m_maxScaleSpinBox->value();
+        m_cwtParams.scaleSteps = m_scaleStepsSpinBox->value();
+        
+        // Validate range
+        if (m_cwtParams.startSample >= m_cwtParams.endSample) {
+            throw std::runtime_error("Invalid sample range");
+        }
+        if (m_cwtParams.endSample > fullSignal.size()) {
+            m_cwtParams.endSample = fullSignal.size();
+        }
+        
         std::vector<double> signal(fullSignal.begin() + m_cwtParams.startSample,
                                   fullSignal.begin() + m_cwtParams.endSample);
         
+        m_progressBar->setValue(10);
+        m_statusLabel->setText("Preparing scales...");
+        QApplication::processEvents();
         
+        // Generate scales
         m_scales.clear();
         double scaleStep = static_cast<double>(m_cwtParams.maxScale - m_cwtParams.minScale) 
                           / (m_cwtParams.scaleSteps - 1);
@@ -449,55 +477,78 @@ void WaveletAnalyzer::performCWT()
             m_scales.push_back(m_cwtParams.minScale + i * scaleStep);
         }
         
+        m_progressBar->setValue(20);
+        m_statusLabel->setText("Computing CWT coefficients...");
+        QApplication::processEvents();
         
+        // Perform CWT with progress updates
         m_cwtCoefficients = computeCWT(signal, m_scales, m_cwtParams.waveletType);
         
+        m_progressBar->setValue(80);
+        m_statusLabel->setText("Generating scalogram...");
+        QApplication::processEvents();
         
+        // Update visualization
         std::vector<double> timeSegment(m_signalData.timeVector.begin() + m_cwtParams.startSample,
                                        m_signalData.timeVector.begin() + m_cwtParams.endSample);
         
         m_scalogramPlot->setCWTData(m_cwtCoefficients, m_scales, timeSegment);
         
+        m_progressBar->setValue(90);
+        QApplication::processEvents();
         
-        QString info = QString("CWT Analysis Complete\n"
-                              "Wavelet: %1\n"
-                              "Scales: %2 - %3 (%4 steps)\n"
-                              "Samples: %5 - %6\n"
-                              "Duration: %7 ms")
+        // Calculate analysis duration
+        double duration_ms = (m_cwtParams.endSample - m_cwtParams.startSample) * 1000.0 / m_signalData.samplingRate;
+        
+        // Generate detailed analysis info
+        QString info = QString("✅ CWT Analysis Complete\n\n"
+                              "📊 Parameters:\n"
+                              "  • Wavelet: %1\n"
+                              "  • Scales: %2 - %3 (%4 steps)\n"
+                              "  • Samples: %5 - %6 (%7 total)\n"
+                              "  • Duration: %8 ms\n"
+                              "  • Sampling Rate: %9 Hz\n\n"
+                              "📈 Results:\n"
+                              "  • Coefficient Matrix: %10 × %11\n"
+                              "  • Frequency Range: ~%12 - %13 Hz\n\n"
+                              "🎯 Interpretation:\n"
+                              "  • Red/Yellow: High energy\n"
+                              "  • Blue/Green: Low energy\n"
+                              "  • Vertical patterns: Transient events\n"
+                              "  • Horizontal patterns: Sustained activity")
                       .arg(m_waveletCombo->currentText())
                       .arg(m_cwtParams.minScale)
                       .arg(m_cwtParams.maxScale)
                       .arg(m_cwtParams.scaleSteps)
                       .arg(m_cwtParams.startSample)
                       .arg(m_cwtParams.endSample)
-                      .arg((m_cwtParams.endSample - m_cwtParams.startSample) * 1000.0 / m_signalData.samplingRate, 0, 'f', 2);
+                      .arg(m_cwtParams.endSample - m_cwtParams.startSample)
+                      .arg(duration_ms, 0, 'f', 1)
+                      .arg(m_signalData.samplingRate, 0, 'f', 0)
+                      .arg(m_cwtCoefficients.size())
+                      .arg(m_cwtCoefficients.empty() ? 0 : m_cwtCoefficients[0].size())
+                      .arg(m_signalData.samplingRate / (2 * m_cwtParams.maxScale), 0, 'f', 1)
+                      .arg(m_signalData.samplingRate / (2 * m_cwtParams.minScale), 0, 'f', 1);
         
         m_infoTextEdit->setText(info);
         m_progressBar->setValue(100);
-        m_statusLabel->setText("CWT analysis completed");
+        m_statusLabel->setText("✅ CWT analysis completed successfully!");
+        
+        // Auto-scroll info to top
+        QTextCursor cursor = m_infoTextEdit->textCursor();
+        cursor.movePosition(QTextCursor::Start);
+        m_infoTextEdit->setTextCursor(cursor);
         
     } catch (const std::exception &e) {
         QMessageBox::critical(this, "Error", QString("CWT analysis failed: %1").arg(e.what()));
-        m_statusLabel->setText("CWT analysis failed");
+        m_statusLabel->setText("❌ CWT analysis failed!");
+        m_progressBar->setValue(0);
+        m_infoTextEdit->setText(QString("❌ Error: %1").arg(e.what()));
     }
     
+    // Re-enable button
     m_analyzeButton->setEnabled(true);
-}
-
-void WaveletAnalyzer::resetView()
-{
-    if (!m_signalData.channels.empty()) {
-        m_startSlider->setValue(0);
-        m_endSlider->setValue(m_signalData.channels[0].size());
-        setTimeRange();
-    }
-    
-    m_cwtCoefficients.clear();
-    m_scales.clear();
-    m_scalogramPlot->setCWTData({}, {}, {});
-    m_infoTextEdit->clear();
-    m_progressBar->setValue(0);
-    m_statusLabel->setText("View reset");
+    m_analyzeButton->setText("Perform CWT Analysis");
 }
 
 std::vector<std::vector<std::complex<double>>> WaveletAnalyzer::computeCWT(
@@ -509,16 +560,17 @@ std::vector<std::vector<std::complex<double>>> WaveletAnalyzer::computeCWT(
     coefficients.resize(scales.size());
     
     int signalLength = signal.size();
+    int totalSteps = scales.size();
     
     for (size_t scaleIdx = 0; scaleIdx < scales.size(); ++scaleIdx) {
         double scale = scales[scaleIdx];
         coefficients[scaleIdx].resize(signalLength);
         
-        
+        // For each time point
         for (int t = 0; t < signalLength; ++t) {
             std::complex<double> coeff(0.0, 0.0);
             
-            
+            // Convolution with scaled wavelet
             for (int tau = 0; tau < signalLength; ++tau) {
                 double time = (tau - t) / scale;
                 std::complex<double> waveletValue;
@@ -536,10 +588,14 @@ std::vector<std::vector<std::complex<double>>> WaveletAnalyzer::computeCWT(
             coefficients[scaleIdx][t] = coeff / std::sqrt(scale);
         }
         
-        
-        int progress = static_cast<int>((scaleIdx + 1) * 100 / scales.size());
-        m_progressBar->setValue(progress);
-        QApplication::processEvents();
+        // Update progress more frequently
+        if (scaleIdx % 5 == 0 || scaleIdx == scales.size() - 1) {
+            int progress = 20 + static_cast<int>((scaleIdx + 1) * 60 / totalSteps);
+            m_progressBar->setValue(progress);
+            m_statusLabel->setText(QString("Computing scale %1 of %2...")
+                                  .arg(scaleIdx + 1).arg(totalSteps));
+            QApplication::processEvents();
+        }
     }
     
     return coefficients;
