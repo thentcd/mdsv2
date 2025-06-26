@@ -84,15 +84,18 @@ void WaveletAnalyzer::setupMenuBar()
     
     auto *helpMenu = menuBar()->addMenu("&Help");
     auto *aboutAction = new QAction("&About", this);
+    
+    
     connect(aboutAction, &QAction::triggered, [this]() {
         QMessageBox::about(this, "About CWT Analyzer",
                           "CWT Scalogram Analyzer v1.0\n\n"
                           "Continuous Wavelet Transform analysis tool\n"
-                          "for multi-channel signal processing.");
+                          "for multi-channel signal processing.\n\n"
+                          "Built with Qt5 for Lubuntu 20.04");
     });
+    
     helpMenu->addAction(aboutAction);
 }
-
 void WaveletAnalyzer::setupSignalControls()
 {
     m_signalGroup = new QGroupBox("Signal Parameters");

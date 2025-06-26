@@ -43,7 +43,7 @@
 #include <cmath>
 #include <stdexcept>
 
-
+/
 class SignalPlotWidget;
 class ScalogramWidget;
 
@@ -64,7 +64,6 @@ private slots:
     void setTimeRange();
     void performCWT();
     void resetView();
-    void showAbout();
 
 private:
     void setupUI();
@@ -74,7 +73,6 @@ private:
     void setupVisualization();
     void updateSignalInfo();
     void updatePlots();
-    void centerWindow();
     
     
     struct SignalData {
@@ -151,10 +149,6 @@ private:
     std::complex<double> morletWavelet(double t, double scale);
     std::complex<double> mexicanHatWavelet(double t, double scale);
     std::complex<double> daubechiesWavelet(double t, double scale);
-    
-    
-    void handleException(const std::exception &e, const QString &context);
-    bool validateInputs();
 };
 
 
@@ -182,7 +176,6 @@ private:
     void drawSignal(QPainter &painter);
     void drawGrid(QPainter &painter);
     void drawAxes(QPainter &painter);
-    void drawErrorMessage(QPainter &painter, const QString &message);
 };
 
 class ScalogramWidget : public QWidget
@@ -203,12 +196,10 @@ private:
     std::vector<double> m_scales;
     std::vector<double> m_time;
     QImage m_scalogramImage;
-    QString m_errorMessage;
     
     void generateScalogramImage();
     QColor valueToColor(double magnitude, double maxMagnitude);
     void drawColorScale(QPainter &painter);
-    void drawErrorMessage(QPainter &painter, const QString &message);
 };
 
-#endif
+#endif 
