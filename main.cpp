@@ -1,4 +1,4 @@
-#include <QtWidgets/QApplication>
+#include <QApplication>
 #include "WaveletAnalyzer.h"
 
 int main(int argc, char *argv[])

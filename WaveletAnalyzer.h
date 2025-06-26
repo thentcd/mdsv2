@@ -18,6 +18,7 @@
 #include <QTextEdit>
 #include <QSplitter>
 #include <QGroupBox>
+#include <QDesktopWidget>  
 #include <vector>
 #include <complex>
 #include <memory>
@@ -53,7 +54,7 @@ private:
     void updateSignalInfo();
     void updatePlots();
     
-    // Data structures
+    
     struct SignalData {
         std::vector<std::vector<double>> channels;
         std::vector<double> timeVector;
@@ -117,7 +118,7 @@ private:
     
     bool loadCSVFile(const QString &filename);
     void parseCSVLine(const QString &line, std::vector<double> &values);
-    std::vector<std::complex<double>> computeCWT(const std::vector<double> &signal, 
+    std::vector<std::vector<std::complex<double>>> computeCWT(const std::vector<double> &signal, 
                                                  const std::vector<double> &scales,
                                                  int waveletType);
     std::complex<double> morletWavelet(double t, double scale);
