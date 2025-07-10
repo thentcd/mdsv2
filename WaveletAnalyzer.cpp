@@ -258,6 +258,25 @@ void WaveletAnalyzer::loadSignalFile()
     }
 }
 
+
+void WaveletAnalyzer::detectAndSetSamplingRate()
+{
+    
+    if (m_signalData.timeVector.size() > 1) {
+        double currentRate = m_samplingRateSpinBox->value();
+        
+        
+        for (size_t i = 0; i < m_signalData.timeVector.size(); ++i) {
+            m_signalData.timeVector[i] = static_cast<double>(i) / currentRate;
+        }
+        
+        m_signalData.samplingRate = currentRate;
+        qDebug() << "Updated sampling rate to:" << currentRate << "Hz";
+    }
+}
+
+
+
 bool WaveletAnalyzer::loadCSVFile(const QString &filename)
 {
     QFile file(filename);
@@ -288,29 +307,45 @@ bool WaveletAnalyzer::loadCSVFile(const QString &filename)
         return false;
     }
     
-    
     int numChannels = tempData[0].size();
-    if (numChannels < 2) {
-        return false; 
-    }
     
-    
-    m_signalData.channels.resize(numChannels - 1);
-    
-    for (const auto &row : tempData) {
-        if (row.size() == numChannels) {
-            m_signalData.timeVector.push_back(row[0]); 
+    if (numChannels == 1) {
+        m_signalData.channels.resize(1);
+        
+        for (size_t i = 0; i < tempData.size(); ++i) {
+            double timeValue = static_cast<double>(i) / m_signalData.samplingRate;
+            m_signalData.timeVector.push_back(timeValue);
             
-            for (int ch = 1; ch < numChannels; ++ch) {
-                m_signalData.channels[ch - 1].push_back(row[ch]);
+            m_signalData.channels[0].push_back(tempData[i][0]);
+        }
+        
+        qDebug() << "Loaded single-column file with" << tempData.size() << "samples";
+        qDebug() << "Generated time vector from 0 to" << m_signalData.timeVector.back() << "seconds";
+    }
+    else if (numChannels >= 2) {
+        m_signalData.channels.resize(numChannels - 1);
+        
+        for (const auto &row : tempData) {
+            if (row.size() == numChannels) {
+                m_signalData.timeVector.push_back(row[0]);
+                
+                for (int ch = 1; ch < numChannels; ++ch) {
+                    m_signalData.channels[ch - 1].push_back(row[ch]);
+                }
             }
         }
+        
+        if (m_signalData.timeVector.size() > 1) {
+            double dt = m_signalData.timeVector[1] - m_signalData.timeVector[0];
+            m_signalData.samplingRate = 1.0 / dt;
+            qDebug() << "Calculated sampling rate from file:" << m_signalData.samplingRate << "Hz";
+        }
+        
+        qDebug() << "Loaded multi-column file with" << (numChannels - 1) << "signal channels";
     }
-    
-    
-    if (m_signalData.timeVector.size() > 1) {
-        double dt = m_signalData.timeVector[1] - m_signalData.timeVector[0];
-        m_signalData.samplingRate = 1.0 / dt;
+    else {
+        qDebug() << "File has no valid data columns";
+        return false;
     }
     
     m_signalData.selectedChannel = 0;

@@ -140,7 +140,7 @@ private:
     std::vector<std::vector<std::complex<double>>> m_cwtCoefficients;
     std::vector<double> m_scales;
     
-    
+    void detectAndSetSamplingRate();
     bool loadCSVFile(const QString &filename);
     void parseCSVLine(const QString &line, std::vector<double> &values);
     std::vector<std::vector<std::complex<double>>> computeCWT(const std::vector<double> &signal, 
